@@ -117,7 +117,88 @@ public class PlayerStatsManager {
         int requiredLevel=(skillBit+1)*10;
         if(getLevel(stats,type)<requiredLevel) return false;
 
-        int mark=1<<skillBit;
-        if((getSkillMark(stats,type) & mask)!=0) return false;
+        int mask=1<<skillBit;
+        if((getSkillMask(stats,type) & mask)!=0) return false;
+
+        setSkillMask(stats,type,getSkillMask(stats,type) | mask);
+        stats.skillPoints--;
+
+        player.sendMessage(
+                Text.literal("✨ Skill unlocked: " + type.getDisplayName() + " Tier " + (skillBit + 1))
+                        .formatted(Formatting.LIGHT_PURPLE),
+                false
+        );
+        applyStatBounuses(player,stats);
+        syncToClient(player);
+        return true;
+    }
+
+    public static void syncToClient(ServerPlayerEntity player){
+        PlayerStats stats=get(player);
+        RpgNetwork.sendStatsToClient(player,stats);
+    }
+    public static void writeToNbt(ServerPlayerEntity player,net.minecraft.nbt.NbtCompound nbt){
+        if(cache.containsKey(player.getUuid())){
+            nbt.put(NBT_KEY,cache.get(player.getUuid()).toNbt());
+        }
+    }
+
+    public static void readFromNbt(ServerPlayerEntity player,net.minecraft.nbt.NbtCompound nbt){
+        if(nbt.contains(NBT_KEY)){
+            cache.put(player.getUuid(),PlayerStats.fromNbt(nbt.getCompound(NBT_KEY)));
+        } else {
+            cache.put(player.getUuid(),new PlayerStats());
+        }
+    }
+
+    public static void remove(UUID uuid){
+        cache.remove(uuid);
+    }
+
+    private static int[] getXpAndLevel(PlayerStats s,StatType t){
+        return switch (t){
+            case STRENGTH  -> new int[]{s.strengthXp,s.strengthLevel};
+            case AGILITY    -> new int[]{s.agilityXp,s.agilityLevel};
+            case ENDURANCE -> new int[]{s.enduranceXp,s.enduranceLevel};
+            case MINING    -> new int[]{s.miningXp,s.miningLevel};
+            case MAGIC     -> new int[]{s.magicXp,s.magicLevel};
+        };
+    }
+    private static void setXpAndLevel(PlayerStats s, StatType t, int xp, int level) {
+        switch (t) {
+            case STRENGTH  -> { s.strengthXp  = xp; s.strengthLevel  = level; }
+            case AGILITY   -> { s.agilityXp   = xp; s.agilityLevel   = level; }
+            case ENDURANCE -> { s.enduranceXp = xp; s.enduranceLevel = level; }
+            case MINING    -> { s.miningXp    = xp; s.miningLevel    = level; }
+            case MAGIC     -> { s.magicXp     = xp; s.magicLevel     = level; }
+        }
+    }
+    public static int getLevel(PlayerStats s, StatType t){
+        return switch (t){
+            case STRENGTH  -> s.strengthLevel;
+            case AGILITY    -> s.agilityLevel;
+            case ENDURANCE -> s.enduranceLevel;
+            case MINING    -> s.miningLevel;
+            case MAGIC     ->s.magicLevel;
+        };
+    }
+    private static int getSkillMask(PlayerStats s,StatType t){
+        return switch (t){
+            case STRENGTH  -> s.strengthXp;
+            case AGILITY    -> s.agilityXp;
+            case ENDURANCE -> s.enduranceXp;
+            case MINING    -> s.miningXp;
+            case MAGIC     ->s.magicXp;
+        };
+    }
+
+    private static void setSkillMask(PlayerStats s,StatType t,int mask){
+        switch (t){
+            case STRENGTH  -> s.strengthXp = mask;
+            case AGILITY    -> s.agilityXp= mask;
+            case ENDURANCE -> s.enduranceXp= mask;
+            case MINING    -> s.miningXp= mask;
+            case MAGIC     ->s.magicXp= mask;
+        }
     }
 }
