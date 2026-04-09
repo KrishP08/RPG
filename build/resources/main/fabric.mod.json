@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "rpg",
+  "version": "1.0-SNAPSHOT",
+  "name": "RPG",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/rpg/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "org.rpg.client.RpgDataGenerator"
+    ],
+    "client": [
+      "org.rpg.client.RpgClient"
+    ],
+    "main": [
+      "org.rpg.Rpg"
+    ]
+  },
+  "mixins": [
+    "rpg.mixins.json",
+    {
+      "config": "rpg.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.5",
+    "fabric-api": "*",
+    "minecraft": "1.20.4"
+  }
+}
