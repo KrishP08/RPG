@@ -1,0 +1,1 @@
+/effect give Player15 minecraft:strength infinite 5
